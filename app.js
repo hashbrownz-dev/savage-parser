@@ -1,7 +1,5 @@
-const fs = require('fs');
+const fs = require('fs/promises');
 const path = require('path');
-
-// WORKING!!!
 
 const getClass = (line) => {
     if(line.includes('class')){
@@ -152,7 +150,7 @@ const parseProp = (prop) => {
     return prop.split(':');
 }
 
-const parseSVG = (data) => {
+const parseSVG = (data, fileName = '') => {
     const lines = data.split('\n');
     const styles = [];
     const paths = [];
@@ -190,21 +188,43 @@ const parseSVG = (data) => {
         method: 'fill',
         color: '#000000'
     });
-    // console.log(styles);
-    // console.log(paths);
-    return JSON.stringify({
-        classes:styles,
-        shapes:paths
-    });
+
+    const output = Object.create(null);
+
+    if(fileName) output.name = fileName;
+    output.classes = styles;
+    output.shapes = paths;
+    
+    return JSON.stringify(output);
 }
 
-fs.readFile('./test/test8.svg', 'utf8', (err, data) => {
-    if(err){
-        console.log(err);
-        return;
+const p = process.argv;
+
+const srcPath = process.argv[2] ? process.argv[2] : './test/input';
+const destPath = process.argv[3] ? process.argv[3] : './test/output';
+
+console.log(`src: ${srcPath}
+dest: ${destPath}`)
+
+const processBatch = async () => {
+    try {
+        const dir = await fs.opendir(srcPath);
+        for await (const dirent of dir){
+            // FIND .svg FILES
+            if(dirent.isFile() && dirent.name.endsWith('.svg')){
+                // Get our file name
+                const fName = path.basename(dirent.name, '.svg');
+                // Read the file
+                const data = await fs.readFile(path.join(srcPath,dirent.name),{encoding:'utf8'});
+                // Parse the data
+                const parsed = parseSVG(data, fName);
+                // Write the file
+                await fs.writeFile(path.join(destPath, `${fName}.json`), parsed);
+            }
+        }
+    } catch (err){
+        console.error(err);
     }
-    const parsedData = parseSVG(data);
-    fs.writeFile('./test/test8.json', parsedData, (err) => {
-        if(err) console.log(err)
-    })
-})
+}
+
+processBatch();
