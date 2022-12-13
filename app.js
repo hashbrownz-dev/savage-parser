@@ -96,7 +96,7 @@ const getPoints = (data) => {
     const match = data.match(/points="(.*)"/);
     const coords = match[1].split(' ');
     coords.forEach( element => {
-        if(element){
+        if(element.trim()){
             const coord = element.split(',');
             points.push({
                 x: coord[0],
@@ -156,7 +156,7 @@ const parseSVG = (data, fileName = '') => {
     const paths = [];
     let l = '';
     lines.forEach((element, index) => {
-        lines[index] = element.trim();
+        lines[index] = element.trimStart();
 
         // GET STYLE CLASSES
 
@@ -165,15 +165,21 @@ const parseSVG = (data, fileName = '') => {
         }
 
         // GET PATHS
-
+       
         if(lines[index].match(/(rect|circle|ellipse|path|line|polyline|polygon)/) !== null ){
-            if(lines[index].endsWith('/>')){
-                paths.push(parseShape(lines[index]));
+            if(lines[index].trimEnd().endsWith('/>')){
+                paths.push(parseShape(lines[index].trimEnd()));
             } else {
-                l = lines[index];
+                l = lines[index].trimEnd();
             }
         } else if (l && !lines[index].startsWith('<')){
-            l += lines[index];
+            if(l.includes('polygon') || l.includes('polyline')){
+                 // While <path/> elements work without any whitespace, <polyline/> and <polygon/> must have spaces between each point in the "points" attribute.  This fixes a bug caused by the absence of white space.
+                l += ` ${lines[index].trim()}`
+            } else {
+                l += lines[index];
+            }
+            // console.log(lines[index]);
             if(l.endsWith('/>')){
                 paths.push(parseShape(l));
                 l = '';
