@@ -273,52 +273,40 @@ const parsePath = (line) => {
     }
 }
 
-const parseSVG = (data, fileName = '') => {
-    const lines = data.split('\n');
-    const styles = [];
-    const paths = [];
-    let l = '';
-    lines.forEach((element, index) => {
-        lines[index] = element.trim();
+// PARSE SVG
 
-        // GET STYLE CLASSES
+const parseSVG = (data, filename = '') => {
+    let current;
+    // Get Dimensions
+    const dimensions = getDims(data);
 
-        if(lines[index].startsWith('.st')){
-            styles.push(parseStyle(lines[index]));
-        }
+    // Get Styles
+    const s = getStyles(data);
+    const styles = s[0];
+    current = s[1];
 
-        // GET PATHS
+    // Get Layers
+    let layers = [];
 
-        if(lines[index].match(/(rect|circle|ellipse|path|line|polyline|polygon)/) !== null ){
-            if(lines[index].endsWith('/>')){
-                paths.push(parseShape(lines[index]));
-            } else {
-                l = lines[index];
-            }
-        } else if (l && !lines[index].startsWith('<')){
-            l += lines[index];
-            if(l.endsWith('/>')){
-                paths.push(parseShape(l));
-                l = '';
-            }
-        }
+    getLayers(data, current).forEach( layer => {
+        const name = getLayerID(layer);
+        const shapes = [];
+        parseLayer(layer).forEach( element => {
+            shapes.push(parseShape(element));
+        })
+        layers.push({
+            name,
+            shapes
+        })
     })
 
-    // CHECK FOR STYLES
-
-    if(!styles.length) styles.push({
-        className: 'default',
-        method: 'fill',
-        color: '#000000'
-    });
-
-    const output = Object.create(null);
-
-    if(fileName) output.name = fileName;
-    output.classes = styles;
-    output.shapes = paths;
-    
-    return JSON.stringify(output);
+    // Store Hitbox to its own property
+    // Hitbox should be the last property of layers
+    const hitboxes = layers.pop();
+    // Compile the final object
+    return { dimensions, hitboxes: hitboxes.shapes.map(shape => {
+        return {x:shape.x, y:shape.y, w:shape.w, h:shape.h}
+    }), styles, layers:layers.filter(layer => layer.name !== 'temp') }
 }
 
 // TEST IN BROWSER
