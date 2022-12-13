@@ -304,9 +304,15 @@ const parseSVG = (data, filename = '') => {
     // Hitbox should be the last property of layers
     const hitboxes = layers.pop();
     // Compile the final object
-    return { dimensions, hitboxes: hitboxes.shapes.map(shape => {
-        return {x:shape.x, y:shape.y, w:shape.w, h:shape.h}
-    }), styles, layers:layers.filter(layer => layer.name !== 'temp') }
+    return {
+        name:filename, 
+        dimensions,
+        hitboxes: hitboxes.shapes.map(shape => {
+            return {x:shape.x, y:shape.y, w:shape.w, h:shape.h}
+        }),
+        styles,
+        layers:layers.filter(layer => layer.name !== 'temp') 
+    }
 }
 
 // TEST IN BROWSER
