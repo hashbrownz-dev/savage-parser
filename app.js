@@ -1,6 +1,3 @@
-const fs = require('fs/promises');
-const path = require('path');
-
 const getClass = (line) => {
     if(line.includes('class')){
         const rx = /class="(st\d+)"/;
@@ -198,33 +195,38 @@ const parseSVG = (data, fileName = '') => {
     return JSON.stringify(output);
 }
 
-const p = process.argv;
+// NODE
 
-const srcPath = process.argv[2] ? process.argv[2] : './test/input';
-const destPath = process.argv[3] ? process.argv[3] : './test/output';
+// const fs = require('fs/promises');
+// const path = require('path');
 
-console.log(`src: ${srcPath}
-dest: ${destPath}`)
+// const p = process.argv;
 
-const processBatch = async () => {
-    try {
-        const dir = await fs.opendir(srcPath);
-        for await (const dirent of dir){
-            // FIND .svg FILES
-            if(dirent.isFile() && dirent.name.endsWith('.svg')){
-                // Get our file name
-                const fName = path.basename(dirent.name, '.svg');
-                // Read the file
-                const data = await fs.readFile(path.join(srcPath,dirent.name),{encoding:'utf8'});
-                // Parse the data
-                const parsed = parseSVG(data, fName);
-                // Write the file
-                await fs.writeFile(path.join(destPath, `${fName}.json`), parsed);
-            }
-        }
-    } catch (err){
-        console.error(err);
-    }
-}
+// const srcPath = process.argv[2] ? process.argv[2] : './test/input';
+// const destPath = process.argv[3] ? process.argv[3] : './test/output';
 
-processBatch();
+// console.log(`src: ${srcPath}
+// dest: ${destPath}`)
+
+// const processBatch = async () => {
+//     try {
+//         const dir = await fs.opendir(srcPath);
+//         for await (const dirent of dir){
+//             // FIND .svg FILES
+//             if(dirent.isFile() && dirent.name.endsWith('.svg')){
+//                 // Get our file name
+//                 const fName = path.basename(dirent.name, '.svg');
+//                 // Read the file
+//                 const data = await fs.readFile(path.join(srcPath,dirent.name),{encoding:'utf8'});
+//                 // Parse the data
+//                 const parsed = parseSVG(data, fName);
+//                 // Write the file
+//                 await fs.writeFile(path.join(destPath, `${fName}.json`), parsed);
+//             }
+//         }
+//     } catch (err){
+//         console.error(err);
+//     }
+// }
+
+// processBatch();
