@@ -9,11 +9,11 @@ const getDims = (data) => {
 // Get all data within the style tag.
 // Remove the style tag from the data.
 
-const getStyles = (data) => {
+const getStyles = (data, startInd = 0) => {
     // Find the style element
     const openingTag = `<style type="text/css">`,
         closingTag = `</style>`;
-    const ind1 = data.indexOf(openingTag);
+    const ind1 = data.indexOf(openingTag, startInd);
     const ind2 = data.indexOf(closingTag) + closingTag.length;
 
     // Split the style element into lines
@@ -28,7 +28,7 @@ const getStyles = (data) => {
     lines.forEach( line => {
         styles.push(parseStyle(line));
     })
-    return styles;
+    return [styles, ind2];
 }
 
 const parseStyle = (line) => {
@@ -51,6 +51,34 @@ const parseProp = (prop) => {
 
 // groups = 'temp' 'fill || mask' 'stroke || main' 'hitBoxes'
 // {/* <g id="temp"></g> */}
+
+const getLayers = (data, startInd = 0) => {
+    const layers = [];
+    let current = startInd;
+    while(true){
+        const layer = getLayer(data, current);
+        if(!layer) break;
+        layers.push(layer[0]);
+        current = layer[1];
+    }
+    return layers;
+}
+
+const getLayer = (data, startInd = 0) => {
+    const openingTag = `<g`,
+    closingTag = `</g>`;
+    const ind1 = data.indexOf(openingTag, startInd);
+    // if no match is found return null
+    if(ind1 < 0) return null;
+    const ind2 = data.indexOf(closingTag, ind1) + closingTag.length;
+    return [data.substring(ind1, ind2), ind2];
+}
+
+const getLayerID = (data) => {
+    const rx = /id="(.+)"/;
+    const match = data.match(rx);
+    return match[1];
+}
 
 const getLayerByName = (data, layerName) => {
     // Find the grouped elements
@@ -83,6 +111,22 @@ const getLayerByName = (data, layerName) => {
         index = e[1];
     }
 
+    return elements;
+}
+
+const parseLayer = (data) => {
+    const ind1 = data.indexOf('<',1);
+    const ind2 = data.indexOf('</g>',ind1);
+
+    // Remove any new lines from our string.
+    const layer = data.substring(ind1,ind2).split('\n').join('');
+    let index = 0;
+    const elements = [];
+    while(index < layer.length -1){
+        const e = getElement(layer, index);
+        elements.push(e[0]);
+        index = e[1];
+    }
     return elements;
 }
 
@@ -192,11 +236,13 @@ const getPoints = (data) => {
     const coords = match[1].split(' ');
     coords.forEach( element => {
         if(element){
-            const coord = element.split(',');
-            points.push({
-                x: coord[0],
-                y: coord[1]
-            });
+            const coord = element.trim().split(',');
+            if(coord[0] && coord[1]){
+                points.push({
+                    x: coord[0],
+                    y: coord[1]
+                });
+            }
         }
     })
     return points
