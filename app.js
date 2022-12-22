@@ -119,7 +119,8 @@ const parseLayer = (data) => {
     const ind2 = data.indexOf('</g>',ind1);
 
     // Remove any new lines from our string.
-    const layer = data.substring(ind1,ind2).split('\n').join('');
+    const rn = data.substring(ind1,ind2).split('\n').join('');
+    const layer = rn.split('\r').join('');
     let index = 0;
     const elements = [];
     while(index < layer.length -1){
@@ -275,7 +276,7 @@ const parsePath = (line) => {
 
 // PARSE SVG
 
-const parseSVG = (data, filename = '') => {
+const parseSVG = (data) => {
     let current;
     // Get Dimensions
     const dimensions = getDims(data);
@@ -305,7 +306,6 @@ const parseSVG = (data, filename = '') => {
     const hitboxes = layers.pop();
     // Compile the final object
     return {
-        name:filename, 
         dimensions,
         hitboxes: hitboxes.shapes.map(shape => {
             return {x:shape.x, y:shape.y, w:shape.w, h:shape.h}
@@ -319,57 +319,60 @@ const parseSVG = (data, filename = '') => {
 
 // SET INPUT AND OUTPUT ELEMENTS
 
-const createLog = (logName) => {
-    const div = document.createElement('div'),
-        heading = document.createElement('h1'),
-        paragraph = document.createElement('p');
-    heading.innerText = logName;
-    heading.style.textTransform = 'capitalize';
-    heading.style.fontSize = '1.5em';
-    div.appendChild(heading);
-    div.appendChild(paragraph);
-    document.body.appendChild(div);
-    // createLog returns a reference to the paragraph where our data will be displayed
-    return paragraph;
-}
+// const createLog = (logName) => {
+//     const div = document.createElement('div'),
+//         heading = document.createElement('h1'),
+//         paragraph = document.createElement('p');
+//     heading.innerText = logName;
+//     heading.style.textTransform = 'capitalize';
+//     heading.style.fontSize = '1.5em';
+//     div.appendChild(heading);
+//     div.appendChild(paragraph);
+//     document.body.appendChild(div);
+//     // createLog returns a reference to the paragraph where our data will be displayed
+//     return paragraph;
+// }
 
-const inputLog = createLog('input:');
-const outputLog = createLog('output:');
+// const inputLog = createLog('input:');
+// const outputLog = createLog('output:');
 
-inputLog.innerText = testStr;
+// inputLog.innerText = testStr;
+// outputLog.innerText = JSON.stringify(parseSVG(testStr, 'Oink'));
 
 // NODE
 
-// const fs = require('fs/promises');
-// const path = require('path');
+const fs = require('fs/promises');
+const path = require('path');
 
-// const p = process.argv;
+const p = process.argv;
 
-// const srcPath = process.argv[2] ? process.argv[2] : './test/input';
-// const destPath = process.argv[3] ? process.argv[3] : './test/output';
+const srcPath = process.argv[2] ? process.argv[2] : './test/input';
+const destPath = process.argv[3] ? process.argv[3] : './test/output';
 
-// console.log(`src: ${srcPath}
-// dest: ${destPath}`)
+console.log(`src: ${srcPath}
+dest: ${destPath}`)
 
-// const processBatch = async () => {
-//     try {
-//         const dir = await fs.opendir(srcPath);
-//         for await (const dirent of dir){
-//             // FIND .svg FILES
-//             if(dirent.isFile() && dirent.name.endsWith('.svg')){
-//                 // Get our file name
-//                 const fName = path.basename(dirent.name, '.svg');
-//                 // Read the file
-//                 const data = await fs.readFile(path.join(srcPath,dirent.name),{encoding:'utf8'});
-//                 // Parse the data
-//                 const parsed = parseSVG(data, fName);
-//                 // Write the file
-//                 await fs.writeFile(path.join(destPath, `${fName}.json`), parsed);
-//             }
-//         }
-//     } catch (err){
-//         console.error(err);
-//     }
-// }
+const processBatch = async () => {
+    try {
+        const dir = await fs.opendir(srcPath);
+        const imgData = {};
+        for await (const dirent of dir){
+            // FIND .svg FILES
+            if(dirent.isFile() && dirent.name.endsWith('.svg')){
+                // Get our file name
+                const fName = path.basename(dirent.name, '.svg');
+                // Read the file
+                const data = await fs.readFile(path.join(srcPath,dirent.name),{encoding:'utf8'});
+                // Parse the data
+                const parsed = parseSVG(data);
+                imgData[fName] = parsed;
+            }
+        }
+        // Write the file
+        await fs.writeFile(path.join(destPath, `imgData.js`), `const imgData = ${JSON.stringify(imgData)}`);
+    } catch (err){
+        console.error(err);
+    }
+}
 
-// processBatch();
+processBatch();
