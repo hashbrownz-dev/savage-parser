@@ -1,13 +1,7 @@
-// Get image dimensions from the viewBox attribute
-// expected output: viewBox="0 0 54 56"
-
 const getDims = (data) => {
     const dims = data.match(/viewBox="(\d+) (\d+) (\d+) (\d+)"/);
     return { drawW: dims[3], drawH: dims[4] }
 }
-
-// Get all data within the style tag.
-// Remove the style tag from the data.
 
 const getStyles = (data, startInd = 0) => {
     // Find the style element
@@ -236,14 +230,6 @@ const getPoints = (data) => {
     const match = data.match(/points="(.*)"/);
     const coords = match[1].split(' ');
     coords.forEach( element => {
-<<<<<<< HEAD
-        if(element.trim()){
-            const coord = element.split(',');
-            points.push({
-                x: coord[0],
-                y: coord[1]
-            });
-=======
         if(element){
             const coord = element.trim().split(',');
             if(coord[0] && coord[1]){
@@ -252,7 +238,6 @@ const getPoints = (data) => {
                     y: coord[1]
                 });
             }
->>>>>>> testInBrowser
         }
     })
     return points
@@ -323,67 +308,6 @@ const parseSVG = (data) => {
         layers:layers.filter(layer => layer.name !== 'temp') 
     }
 }
-
-<<<<<<< HEAD
-const parseSVG = (data, fileName = '') => {
-    const lines = data.split('\n');
-    const styles = [];
-    const paths = [];
-    let l = '';
-    lines.forEach((element, index) => {
-        lines[index] = element.trimStart();
-=======
-// TEST IN BROWSER
->>>>>>> testInBrowser
-
-// SET INPUT AND OUTPUT ELEMENTS
-
-// const createLog = (logName) => {
-//     const div = document.createElement('div'),
-//         heading = document.createElement('h1'),
-//         paragraph = document.createElement('p');
-//     heading.innerText = logName;
-//     heading.style.textTransform = 'capitalize';
-//     heading.style.fontSize = '1.5em';
-//     div.appendChild(heading);
-//     div.appendChild(paragraph);
-//     document.body.appendChild(div);
-//     // createLog returns a reference to the paragraph where our data will be displayed
-//     return paragraph;
-// }
-
-<<<<<<< HEAD
-        // GET PATHS
-       
-        if(lines[index].match(/(rect|circle|ellipse|path|line|polyline|polygon)/) !== null ){
-            if(lines[index].trimEnd().endsWith('/>')){
-                paths.push(parseShape(lines[index].trimEnd()));
-            } else {
-                l = lines[index].trimEnd();
-            }
-        } else if (l && !lines[index].startsWith('<')){
-            if(l.includes('polygon') || l.includes('polyline')){
-                 // While <path/> elements work without any whitespace, <polyline/> and <polygon/> must have spaces between each point in the "points" attribute.  This fixes a bug caused by the absence of white space.
-                l += ` ${lines[index].trim()}`
-            } else {
-                l += lines[index];
-            }
-            // console.log(lines[index]);
-            if(l.endsWith('/>')){
-                paths.push(parseShape(l));
-                l = '';
-            }
-        }
-    })
-
-    // CHECK FOR STYLES
-=======
-// const inputLog = createLog('input:');
-// const outputLog = createLog('output:');
-
-// inputLog.innerText = testStr;
-// outputLog.innerText = JSON.stringify(parseSVG(testStr, 'Oink'));
->>>>>>> testInBrowser
 
 // NODE
 
