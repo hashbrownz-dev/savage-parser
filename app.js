@@ -339,7 +339,7 @@ const processBatch = async () => {
             }
         }
         // Write the file
-        await fs.writeFile(path.join(destPath, `imgData.js`), `const imgData = ${JSON.stringify(imgData)}`);
+        await fs.writeFile(path.join(destPath, `spriteData.js`), `const spriteData = ${JSON.stringify(imgData)}`);
     } catch (err){
         console.error(err);
     }
